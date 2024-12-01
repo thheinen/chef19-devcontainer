@@ -1,0 +1,72 @@
+{
+    "name": "Chef19",
+    "build": {
+      "dockerfile": "Dockerfile"
+    },
+    "features": {
+      "ghcr.io/devcontainers/features/aws-cli:1": {},
+      "ghcr.io/devcontainers/features/common-utils:1": {
+        "installZsh": false,
+        "installOhMyZsh": false
+      }
+    },
+    "customizations": {
+      "vscode": {
+        "settings": {
+          "editor.renderFinalNewline": "on",
+          "aws.telemetry": false,
+          "editor.renderWhitespace": "all",
+          "editor.trimAutoWhitespace": true,
+          "files.exclude": {
+          },
+          "git.allowForcePush": true,
+          "git.alwaysSignOff": true,
+          "terminal.integrated.scrollback": 20000
+        },
+        "extensions": [
+          "actboy168.tasks",
+          "darkriszty.markdown-table-prettify",
+          "editorconfig.editorconfig",
+          "elagil.pre-commit-helper",
+          "gruntfuggly.todo-tree",
+          "kevinkyang.auto-comment-blocks",
+          "mohsen1.prettify-json",
+          "redhat.vscode-yaml",
+          "SanaAjani.taskrunnercode",
+          "shopify.ruby-lsp",
+          "VisualStudioExptTeam.vscodeintellicode"
+        ]
+      }
+    },
+
+    "secrets": {
+      "AWS_REGION": {
+        "description": "Region to start TK instances in. Example: eu-west-1"
+      },
+      "AWS_ACCESS_KEY_ID": {
+        "description": "Access Key ID for your AWS account"
+      },
+      "AWS_SECRET_ACCESS_KEY": {
+        "description": "Secret Access Key for your AWS account"
+      },
+      "KITCHEN_LOCAL_YAML": {
+        "description": "Set this to address a specific cloud config in the repo. Recommended: kitchen.ec2.yml"
+      },
+      "CHEF_LICENSEKEY": {
+        "description": "License key for Chef Infra"
+      }
+    },
+
+    "mounts": [
+      "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,readonly,type=bind",
+      "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly,type=bind"
+    ],
+
+    "remoteUser": "vscode",
+    "remoteEnv": {
+      "PATH": "/home/vscode/bin:/home/vscode/.local/bin:${containerEnv:PATH}",
+      "CHEF_LICENSE": "accept-silent"
+    },
+    "postCreateCommand": "",
+    "postAttachCommand": "direnv allow ${containerWorkspaceFolder} || true; alias sshk=\"ssh -i .kitchen/*pem root@$(grep hostname .kitchen/*.yml| cut -b11-)\""
+  }
