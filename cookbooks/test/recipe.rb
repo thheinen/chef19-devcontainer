@@ -6,58 +6,53 @@
 #  action :add  # Adds this input to the compliance phase
 #end
 
-#inspec_waiver 'web_server_security' do
-#  control 'security-123'
-#  justification 'Waiver granted due to ongoing security patch deployment.'
-#  expiration '2024-06-30'
-#  action :add
-#end
+directory '/etc/inspec'
+
+inspec_waiver 'web_server_security' do
+  control 'security-123'
+  justification 'Waiver granted due to ongoing security patch deployment.'
+  expiration '2024-06-30'
+  action :add
+end
 
 directory '/tmp/inspec'
 
 # Add a waiver entry to a specific waiver file
-#inspec_waiver_file_entry 'web_server_security' do
-#  control 'security-123'
-#  justification 'Waiver granted due to ongoing security patch deployment.'
-#  expiration '2024-06-30'
-#  file_path '/etc/inspec/waivers.yml'
-#  action :add
-#end
+inspec_waiver_file_entry 'web_server_security' do
+  control 'security-123'
+  justification 'Waiver granted due to ongoing security patch deployment.'
+  expiration '2024-06-30'
+  file_path '/etc/inspec/waivers.yml'
+  action :add
+end
 
-#habitat_service 'service_name' do
-#  action [:start, :stop, :restart]
-#end
+#user 'hab' do
+#  comment 'Habitat User'
+#  home '/home/hab'
+#  group 'hab'
+#  shell '/bin/bash'
+#  manage_home true
+#  action :create
 #
-# Install the Habitat package 'myapp'
-#habitat_package 'hello_world' do
-#  action :install
+#  not_if 'id hab'
 #end
+#habitat_install
 
-# FATAL: Mixlib::ShellOut::ShellCommandFailed: habitat_package[core/nginx] (test::default line 36) had an error: Mixlib::ShellOut::ShellCommandFailed: Unexpected exit status of 127 running ["hab license accept"]: sh: 1: hab license accept: not found
+habitat_package 'core/nginx'
+habitat_service 'core/nginx'
 
-#habitat_package 'core/nginx'
-#habitat_service 'core/nginx'
+habitat_config 'nginx.default' do
+  config({
+    worker_count: 2,
+    http: {
+      keepalive_timeout: 120
+    }
+  })
+end
 
-#habitat_config 'nginx.default' do
-#  config({
-#    worker_count: 2,
-#    http: {
-#      keepalive_timeout: 120
-#    }
-#  })
-#end
-
-#habitat_service 'core/nginx unload' do
-#  service_name 'core/nginx'
-#  action :unload
-##end
-
-user 'deploy' do
-  comment 'Deploy User'
-  home '/home/deploy'
-  shell '/bin/bash'
-  manage_home true
-  action :create
+habitat_service 'core/nginx unload' do
+  service_name 'core/nginx'
+  action :unload
 end
 
 habitat_config 'default' do
