@@ -1,15 +1,14 @@
-FROM ubuntu:24.04
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
-ARG DIRENV_VERSION=2.32.3
-ARG CHEFHAB_VERSION=19.0.58/20241127134641
-
-ARG USERNAME=vscode
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-
-ARG CHEF_LICENSE=accept-silent
-ARG HAB_LICENSE=accept
+ARG CHEFHAB_VERSION=19.0.59/20241203230658
 ARG CHEF_LICENSEKEY
+
+ENV USERNAME=vscode
+ENV USER_UID=1000
+ENV USER_GID=$USER_UID
+ENV CHEF_LICENSE=accept-silent
+ENV HAB_LICENSE=accept
+ENV HAB_BLDR_CHANNEL=LTS-2024
 
 # System base with common tooling
 RUN apt-get update \
@@ -19,21 +18,17 @@ RUN apt-get update \
         yamllint python3-pip git less jq ssh patchutils \
     && apt-get autoremove --yes \
     && apt-get clean --yes \
-    && rm -rf /var/lib/apt/lists/* \
-    #
-    && curl --location-trusted "https://github.com/direnv/direnv/releases/download/v${DIRENV_VERSION}/direnv.linux-amd64" --output /usr/local/bin/direnv --silent \
-    && chmod +x /usr/local/bin/direnv
+    && rm -rf /var/lib/apt/lists/*
 
-RUN curl --silent https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash \
+# Get Chef
+RUN curl --silent https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash \
     && hab cli completers --shell bash > /etc/bash_completion.d/hab \
     && hab pkg install chef/chef-infra-client/${CHEFHAB_VERSION} \
     && echo 'alias chef-client="hab pkg exec chef/chef-infra-client chef-client"' >> /etc/bash.bashrc \
     && mkdir /home/vscode/.chef \
-    && echo -e "---\n:file_format_version: 4.0.0\n:licenses:\n- :license_key: $CHEF_LICENSEKEY\n  :license_type: :free\n  :update_time: '2024-12-01T00:00:00+00:00'\n:license_server_url: https://services.chef.io/licenseing\n" > /home/vscode/.chef/licenses.yaml
+    && echo -e "---\n:file_format_version: 4.0.0\n:licenses:\n- :license_key: $CHEF_LICENSEKEY\n  :license_type: :free\n  :update_time: '2024-12-01T00:00:00+00:00'\n:license_server_url: https://services.chef.io/licensing\n" > /home/vscode/.chef/licenses.yaml \
+    && chown vscode:vscode -R /home/vscode/.chef/
 
-# User configuration
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME \
-    && echo 'eval "$(direnv hook bash)"' >> /home/$USERNAME/.bashrc
+# Make this usable as dev environment
+RUN /hab/pkgs/core/ruby3_1/3.1.6/*/bin/gem install test-kitchen kitchen-transport-train kitchen-ec2 \
+    && echo 'export PATH="$PATH:$(find /hab/pkgs/core/ruby3_1/3.1.6/*/bin/ -type d)"' >> /etc/bash.bashrc

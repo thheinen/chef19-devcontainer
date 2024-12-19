@@ -5,7 +5,7 @@
     },
     "features": {
       "ghcr.io/devcontainers/features/aws-cli:1": {},
-      "ghcr.io/devcontainers/features/common-utils:1": {
+      "ghcr.io/devcontainers/features/common-utils:2": {
         "installZsh": false,
         "installOhMyZsh": false
       }
@@ -68,5 +68,5 @@
       "CHEF_LICENSE": "accept-silent"
     },
     "postCreateCommand": "",
-    "postAttachCommand": "direnv allow ${containerWorkspaceFolder} || true; alias sshk=\"ssh -i .kitchen/*pem root@$(grep hostname .kitchen/*.yml| cut -b11-)\""
+    "postAttachCommand": "mkdir /cookbooks/test/.kitchen 2>/dev/null || alias sshk=\"ssh -i .kitchen/*pem root@$(grep hostname cookbooks/test/.kitchen/*.yml| cut -b11-)\""
   }
