@@ -24,11 +24,12 @@ RUN apt-get update \
 RUN curl --silent https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash \
     && hab cli completers --shell bash > /etc/bash_completion.d/hab \
     && hab pkg install chef/chef-infra-client/${CHEFHAB_VERSION} \
-    && echo 'alias chef-client="hab pkg exec chef/chef-infra-client chef-client"' >> /etc/bash.bashrc \
+    && echo -n "#!/bin/bash\nhab pkg exec chef/chef-infra-client chef-client $@\n" >> /usr/local/bin/chef-client \
+    && chmod +x /usr/local/bin/chef-client \
     && mkdir /home/vscode/.chef \
     && echo -e "---\n:file_format_version: 4.0.0\n:licenses:\n- :license_key: $CHEF_LICENSEKEY\n  :license_type: :free\n  :update_time: '2024-12-01T00:00:00+00:00'\n:license_server_url: https://services.chef.io/licensing\n" > /home/vscode/.chef/licenses.yaml \
     && chown vscode:vscode -R /home/vscode/.chef/
 
 # Make this usable as dev environment
-RUN /hab/pkgs/core/ruby3_1/3.1.6/*/bin/gem install test-kitchen kitchen-transport-train kitchen-ec2 \
+RUN /hab/pkgs/core/ruby3_1/3.1.6/*/bin/gem install test-kitchen kitchen-transport-train kitchen-ec2 toml-rb \
     && echo 'export PATH="$PATH:$(find /hab/pkgs/core/ruby3_1/3.1.6/*/bin/ -type d)"' >> /etc/bash.bashrc

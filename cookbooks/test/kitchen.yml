@@ -5,6 +5,7 @@ provisioner:
   name: chef_target
 
   log_level: info # <%= ENV['CHEF_LOG_LEVEL'] || "auto" %>
+  chef_client_path: /usr/local/bin/chef-client
   client_rb:
     'ohai.disabled_plugins':
       # Will fail or report bogus data as executed on runner, not target
@@ -22,4 +23,5 @@ transport:
 
 suites:
   - name: default
-    named_run_list: default
+    run_list:
+      - recipe[test]
