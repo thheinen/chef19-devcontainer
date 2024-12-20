@@ -4,7 +4,7 @@ provisioner:
   # with the right CLI arguments and train config (see transport)
   name: chef_target
 
-  log_level: info # <%= ENV['CHEF_LOG_LEVEL'] || "auto" %>
+  log_level: info
   chef_client_path: /usr/local/bin/chef-client
   client_rb:
     'ohai.disabled_plugins':
