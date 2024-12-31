@@ -14,7 +14,7 @@ driver:
   skip_cost_warning: true
   instance_type: t3a.medium
   # Need to predeploy a role like this which allows to create/destroy instances
-  iam_profile_name: TestKitchen
+  #iam_profile_name: TestKitchen
 
   # Limit to developer IP and enable the SSH key for root login (needed for Target Mode)
   security_group_cidr_ip: <%= require 'open-uri'; URI('http://checkip.amazonaws.com').read.chop %>/32
@@ -25,14 +25,14 @@ driver:
   delete_on_termination: false
 
 platforms:
-  - name: amazon2
-  - name: debian-9
-  - name: debian-10
-  - name: debian-11
-  - name: rhel-7
+  #- name: amazon2
+  #- name: debian-9
+  #- name: debian-10
+  #- name: debian-11
+  #- name: rhel-7
   - name: rhel-8
-  - name: rhel-9
-  - name: ubuntu-16.04
-  - name: ubuntu-18.04
-  - name: ubuntu-20.04
+  #- name: rhel-9
+  #- name: ubuntu-16.04
+  #- name: ubuntu-18.04
+  #- name: ubuntu-20.04
   - name: ubuntu-22.04
