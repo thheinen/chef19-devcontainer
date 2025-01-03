@@ -69,5 +69,5 @@
       "KITCHEN_LOCAL_YAML": "kitchen.ec2.yml"
     },
     "postCreateCommand": "",
-    "postAttachCommand": "mkdir /cookbooks/test/.kitchen 2>/dev/null || alias sshk=\"ssh -i .kitchen/*pem root@\\$(grep hostname .kitchen/*.yml| cut -b11-)\""
+    "postAttachCommand": "mkdir /workspaces/vscode/cookbooks/test/.kitchen 2>/dev/null || alias sshk='ssh -i .kitchen/*pem root@$(grep hostname .kitchen/*.yml| cut -b11-)'"
   }

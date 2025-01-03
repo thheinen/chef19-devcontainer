@@ -25,6 +25,3 @@ suites:
   - name: default
     run_list:
       - recipe[test]
-  - name: resolver
-    run_list:
-      - recipe[test::resolver]

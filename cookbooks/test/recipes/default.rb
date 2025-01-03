@@ -1,7 +1,5 @@
 skip_useradd = true # Quoting issue in mixlib-shellout
 skip_habitat = true # Timeouts
-skip_selinux = true
-skip_flush_cache = false
 
 ######
 # Accessible 2 #2
@@ -15,11 +13,15 @@ end unless skip_useradd
 ######
 # Accessible 2 #3-11
 
-if platform_family? 'rhel' && !skip_selinux
+if platform_family? 'rhel'
   selinux_install 'selinux' do
     action :install
     packages %w(make policycoreutils selinux-policy selinux-policy-targeted selinux-policy-devel libselinux-utils setools-console)
-  end unless skip_flush_cache
+  end
+
+  user 'ctest' do
+    system true
+  end
 
   selinux_user 'ctest' do
     level 's0'
@@ -32,6 +34,8 @@ if platform_family? 'rhel' && !skip_selinux
     range 's0'
     action :manage
   end
+
+  file '/tmp/foo.txt'
 
   selinux_fcontext '/tmp/foo.txt' do
     secontext 'samba_share_t'
@@ -63,7 +67,7 @@ if platform_family? 'rhel' && !skip_selinux
 
   selinux_boolean 'ssh_keysign' do
     value true
-    persistent false # The change will not persist after a reboot
+    persistent false
     action :set
   end
 end
@@ -85,12 +89,12 @@ if platform_family? 'rhel'
     password ENV['RHEL_PW']
     auto_attach true
     action :register
-  end unless skip_flush_cache or true
+  end
 
   rhsm_subscription 'attach_subscription' do
     pool_id '2c94582e918fd1090191db3a9e083436'
     action :attach
-  end unless skip_flush_cache  or true # not because of the issue, but because of rhsm_register
+  end
 
   rhsm_repo 'rhel-9-server-rpms' do
     repo_name 'rhel-atomic-7-cdk-3.11-rpms'
@@ -166,7 +170,7 @@ end
 # Accessible 2 #24
 
 unless skip_habitat
-  habitat_install # also: flush_cache
+  habitat_install
 
   user 'hab' do # does not pass idempotency checks?
     not_if 'id hab'
@@ -286,11 +290,9 @@ end
 # 20241220 TH: Issue in apt_package prevents installation of prerequisite
 apt_update  'now' do
   action :update
-end
+end if debian?
 
 package 'ksh'
-
-# 20241220 TH: HEREDOC syntax broken
 ksh 'hello world' do
   code 'echo "Hello world"'
 end
@@ -360,7 +362,8 @@ apt_update 'now' do
   action :update
 end
 
-apt_package 'csh'
+package 'tcsh' if platform_family? 'rhel'
+package 'csh' if platform_family? 'debian'
 
 csh 'run_example_script' do
   code 'echo "Hello from CSH"'
@@ -390,7 +393,6 @@ apt_update  'now' do
 end
 
 package 'subversion'
-
 directory '/tmp/project'
 
 # 20241220 TH Needs with an existing repo (GitHub != SVN), still CONFIRMED
@@ -429,18 +431,15 @@ end
 ######
 # Not Accessible #26
 
-# 20241220 TH: Works without modifications (except for device/gateway)
-#route '10.0.1.10/32' do
-#  gateway '172.31.16.1'
-#
-#  device 'ens5' if platform_family? 'debian'
-#  device 'eth0' if platform_family? 'rhel'
-#end
+route '10.0.1.10/32' do
+  gateway node['network']['default_gateway']
+
+  device node['network']['default_interface']
+end
 
 ######
 # Not Accessible #27 (CONFIRMED)
 
-# 20241220 TH: `locale -a: command not found` -> Issue with shell_out maybe?
 # 20241228 TH: file[Updating system locale] (test::default line 155) had an error: ArgumentError: wrong number of arguments (given 1, expected 0)
 #locale 'set system locale' do
 #  lang 'en_US.UTF-8'
@@ -449,10 +448,7 @@ end
 ######
 # Not Accessible #28
 
-# 20241220 TH: On Ubuntu, this package is "cron" - no "flush_cache" error. RedHat CONFIRMED
-package 'cron' do
-  action :install
-end
+package 'nginx' # cron does not exist on RHEL
 
 ######
 # Not Accessible #29 -> not Ubuntu/RedHat
@@ -475,7 +471,6 @@ end
 ######
 # Not Accessible #31
 
-# 20241220 TH: HEREDOC syntax broken
 script 'run_custom_script' do
   interpreter 'bash' # Specify a custom interpreter
   code "echo 'This is a custom script in Chef!'" # Custom script code
@@ -488,7 +483,17 @@ end
 ######
 # Not Accessible #33
 
-# 20241220 TH Always "No installation candidate" (CONFIRMED)
+# "No installation candidate" = Snap not installed (needs EPEL on RHEL)
+if platform_family? 'rhel'
+  yum_repository 'epel' do
+    description 'Extra Packages for #{yum_epel_release} - $basearch'
+    mirrorlist "https://mirrors.fedoraproject.org/mirrorlist?repo=epel-8&arch=$basearch"
+    gpgkey "https://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8"
+  end
+
+  yum_package 'snapd'
+  execute 'systemctl enable --now snapd.socket'
+end
 snap_package 'ponysay'
 
 ######
@@ -508,12 +513,10 @@ end
 # Not Accessible #37
 
 if platform_family? 'rhel'
-  yum_repository 'metadata_repo' do
-    description 'Repository with metadata expiration'
-    baseurl 'https://cdn.redhat.com/content/dist/rhel/entitlement-6/releases/$releasever/$basearch/scalablefilesystem/source/SRPMS'
-    gpgcheck true
-    # gpgkey 'http://repo.example.com/RPM-GPG-KEY'
-    metadata_expire '7d'
+  yum_repository 'epel' do
+    description 'Extra Packages for #{yum_epel_release} - $basearch'
+    mirrorlist "https://mirrors.fedoraproject.org/mirrorlist?repo=epel-8&arch=$basearch"
+    gpgkey "https://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8"
   end
 end
 
@@ -538,5 +541,5 @@ if platform_family? 'rhel'
       echo 'Hello Test';
     EOF
     action :remove
-  end unless skip_selinux
+  end
 end
