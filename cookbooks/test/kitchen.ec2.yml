@@ -25,14 +25,12 @@ driver:
   delete_on_termination: false
 
 platforms:
-  #- name: amazon2
-  #- name: debian-9
-  #- name: debian-10
-  #- name: debian-11
-  #- name: rhel-7
-  - name: rhel-8
-  #- name: rhel-9
-  #- name: ubuntu-16.04
-  #- name: ubuntu-18.04
-  #- name: ubuntu-20.04
-  - name: ubuntu-22.04
+  # - name: amazon2
+  # - name: debian-9
+  # - name: debian-10
+  # - name: debian-11
+  # - name: rhel-7
+  - name: rhel-8 # ok
+  # - name: rhel-9
+  - name: ubuntu-20.04 # ok
+  - name: ubuntu-22.04 # ok

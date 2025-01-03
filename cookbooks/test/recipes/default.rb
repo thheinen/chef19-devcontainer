@@ -304,7 +304,16 @@ end
 alternatives 'python' do
   link      '/usr/bin/python'         # Symbolic link path
   link_name 'python'                  # Name of the alternative
-  path      '/usr/bin/python3.10'     # Path to the alternative
+
+  path '/usr/bin/python' + value_for_platform(
+    'ubuntu' => {
+      '20.04' => '3.8',
+      '22.04' => '3.10'
+    },
+    'rhel' => {
+      '8.9' => '3.10' }
+  )
+
   priority  200                       # Priority of this alternative
   action    :install                  # Install this alternative
 
