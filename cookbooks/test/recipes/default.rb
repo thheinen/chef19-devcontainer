@@ -1,5 +1,4 @@
 skip_useradd = true # Quoting issue in mixlib-shellout
-skip_habitat = true # Timeouts
 
 ######
 # Accessible 2 #2
@@ -169,33 +168,40 @@ end
 ######
 # Accessible 2 #24
 
-unless skip_habitat
-  habitat_install
+#group 'hab'
+#user 'hab' do # does not pass idempotency checks?
+#  gid 'hab'
+#  not_if 'id hab'
+#end
 
-  user 'hab' do # does not pass idempotency checks?
-    not_if 'id hab'
-  end
+habitat_install
 
-  habitat_package 'core/httpd' do
-    channel 'stable'       # Channel from which to install
-    version '2.4.51'       # Optional: Specify version, or omit to install the latest version
-    action  :install       # Action to install the package
-  end
+directory '/hab/accepted-licenses' do
+  recursive true
+end
+
+file '/hab/accepted-licenses/habitat'
+
+# Timeout 1625-
+habitat_package 'core/httpd' do
+  channel 'stable'       # Channel from which to install
+  version '2.4.51'       # Optional: Specify version, or omit to install the latest version
+  action  :install       # Action to install the package
 end
 
 ######
 # Accessible 2 #25
 
-unless skip_habitat
-  directory '/hab/accepted-licenses' do
-    recursive true
-  end
+habitat_install
 
-  file '/hab/accepted-licenses/habitat'
+directory '/hab/accepted-licenses' do
+  recursive true
+end
 
-  habitat_service 'core/httpd' do
-    action :unload  # Stops and unloads the service
-  end
+file '/hab/accepted-licenses/habitat'
+
+habitat_service 'core/httpd' do
+  action :unload  # Stops and unloads the service
 end
 
 ######

@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 # See https://bldr.habitat.sh/#/pkgs/chef/chef-infra-client/latest
-ARG CHEFHAB_VERSION=19.0.61/20241217215243
+ARG CHEFHAB_VERSION=19.0.59/20241203230658
 ARG CHEF_LICENSEKEY
 
 ENV USERNAME=vscode
