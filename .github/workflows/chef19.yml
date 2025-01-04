@@ -23,4 +23,4 @@ jobs:
           cacheFrom: ghcr.io/thheinen/chef19
           push: always
         env:
-          CHEF_LICENSE: ${{ secrets.CHEF_LICENSE }}
+          CHEF_LICENSE_KEY: not-included

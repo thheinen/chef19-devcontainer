@@ -1,2 +1,3 @@
 nodes/**/*
 cookbooks/test/.kitchen
+.kitchen/logs/kitchen.log

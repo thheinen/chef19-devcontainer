@@ -66,8 +66,9 @@
     "remoteEnv": {
       "PATH": "/home/vscode/bin:/home/vscode/.local/bin:${containerEnv:PATH}",
       "CHEF_LICENSE": "accept-silent",
+      "CHEF_LICENSE_KEY": "not-included",
       "KITCHEN_LOCAL_YAML": "kitchen.ec2.yml"
     },
-    "postCreateCommand": "",
+    "postCreateCommand": "bash patch.sh",
     "postAttachCommand": "mkdir /workspaces/vscode/cookbooks/test/.kitchen 2>/dev/null || alias sshk='ssh -i .kitchen/*pem root@$(grep hostname .kitchen/*.yml| cut -b11-)'"
   }
