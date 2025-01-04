@@ -57,14 +57,9 @@
       }
     },
 
-    "mounts": [
-      "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,readonly,type=bind",
-      "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly,type=bind"
-    ],
-
     "remoteUser": "vscode",
     "remoteEnv": {
-      "PATH": "/home/vscode/bin:/home/vscode/.local/bin:${containerEnv:PATH}",
+      "PATH": "/home/vscode/bin:/home/vscode/.local/bin:${containerEnv:PATH}:/hab/pkgs/core/ruby3_1/3.1.6/*/bin/",
       "CHEF_LICENSE": "accept-silent",
       "CHEF_LICENSE_KEY": "not-included",
       "KITCHEN_LOCAL_YAML": "kitchen.ec2.yml"

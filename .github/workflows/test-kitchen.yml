@@ -1,0 +1,23 @@
+name: test-kitchen
+on:
+  workflow_dispatch:
+
+jobs:
+  test-kitchen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (GitHub)
+        uses: actions/checkout@v3
+
+      - name: Run test-kitchen
+        uses: devcontainers/ci@v0.3
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          KITCHEN_LOCAL_YAML: kitchen.ec2.yml
+          CHEF_LICENSE_KEY: ${{ secrets.CHEF_LICENSE_KEY }}
+        with:
+          cacheFrom: ghcr.io/thheinen/chef19
+          runCmd: cd cookbooks/test; /hab/pkgs/core/ruby3_1/*/*/bin/kitchen test 2004
