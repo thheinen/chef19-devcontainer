@@ -24,4 +24,7 @@ transport:
 suites:
   - name: default
     run_list:
-      - recipe[test]
+      - recipe[test::regressions]
+      - recipe[test::tab1]
+      - recipe[test::tab2]
+      - recipe[test::tab3]
