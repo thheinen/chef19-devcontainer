@@ -1,5 +1,3 @@
-skip_useradd = true # Quoting issue in mixlib-shellout
-
 ######
 # Accessible 2 #2
 
@@ -7,7 +5,7 @@ user 'cbtest' do
   comment 'system guy'
   system true
   shell '/bin/false'
-end unless skip_useradd
+end
 
 ######
 # Accessible 2 #3-11
@@ -293,7 +291,6 @@ end
 ######
 # Not Accessible #7
 
-# 20241220 TH: Issue in apt_package prevents installation of prerequisite
 apt_update  'now' do
   action :update
 end if debian?
@@ -306,7 +303,7 @@ end
 ######
 # Not Accessible #8
 
-# 20241220 TH: Works, if the referenced binary is installed...
+# Works, if the referenced binary is installed...
 alternatives 'python' do
   link      '/usr/bin/python'         # Symbolic link path
   link_name 'python'                  # Name of the alternative
@@ -329,20 +326,10 @@ end
 ######
 # Not Accessible #9
 
-# 20241220 TH: Error about "include_input" being nil (CONFIRMED)
-#file '/etc/timezone' do
-#  content 'UTC'  # Set the timezone content to 'UTC'
-#  mode '0644'  # Ensure the file is readable by all, writable by owner
-#  owner 'root'  # Ensure the file is owned by root
-#  group 'root'  # Ensure the file belongs to root group
-#  action :create  # Create the file if it does not exist
-#end
-#
-#inspec_input 'timezone_input' do
-#  input 'UTC'  # Default timezone value
-#  source '/etc/timezone'  # Path to the system's timezone file
-#  action :add  # Adds this input to the compliance phase
-#end
+inspec_input 'timezone_input' do
+  source ( { timezone: 'UTC' } )
+  action :add
+end
 
 ######
 # Not Accessible #10
@@ -402,7 +389,6 @@ end
 #####
 # Not Accessible #23
 
-# 20241220 TH:
 apt_update  'now' do
   action :update
 end
@@ -410,18 +396,17 @@ end
 package 'subversion'
 directory '/tmp/project'
 
-# 20241220 TH Needs with an existing repo (GitHub != SVN), still CONFIRMED
+# 20241220 Needs with an existing repo (GitHub != SVN)
 subversion 'checkout_project_code' do
   repository "http://svn.apache.org/repos/asf/couchdb/trunk"
   destination '/tmp/project'
-  revision 'HEAD' # Check out revision 1234
+  revision 'HEAD'
   action :sync
 end
 
 #####
 # Not Accessible #25
 
-# 20241220 TH: Works without modifications
 file '/usr/bin/my_custom_script'
 
 systemd_unit 'my_custom_service.service' do
