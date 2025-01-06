@@ -42,21 +42,11 @@ end
 
 # 08
 chef_client_config 'default' do
-  # URL of your Chef Server
   chef_server_url 'https://your-chef-server/organizations/your-org'
-
-  # Name of the node as recognized by the Chef Server
   node_name 'node-name'
-
-  # Log file location
   log_location '/var/log/chef-client.log'
-
-  # Log level for Chef Client
   log_level :info
-
-  # Directory to store the configuration file
   config_directory '/etc/chef'
-
   action :nothing
 end
 
@@ -77,8 +67,8 @@ end
 
 # 11
 cron_access 'allow_user' do
-  user 'username'     # Replace 'username' with the actual username
-  action :allow       # Default action is :allow, can be omitted if using default
+  user 'username'
+  action :allow
 end
 
 # 12
@@ -128,20 +118,19 @@ end
 #  gid 'hab'
 #  not_if 'id hab'
 #end
-
-# Should be automatically set? Otherwise, habitat package installation will block, waiting for license acceptance
-#directory '/hab/accepted-licenses' do
-#  recursive true
-#end
-#file '/hab/accepted-licenses/habitat'
+#
+# directory '/hab/accepted-licenses' do
+#   recursive true
+# end
+# file '/hab/accepted-licenses/habitat'
 
 habitat_install 'install habitat' do
   hab_version '1.5.50'
 end
 
-execute 'hab license accept'
+execute 'hab license accept' # without this, subsequent examples will block on habitat package installation, awaiting license acceptance
 
-# 19
+# 19 - old example did not match syntax
 habitat_sup 'default' do
   listen_ctl '0.0.0.0:9632'
   listen_http '0.0.0.0:9631'
@@ -160,7 +149,7 @@ http_request 'fetch_posts' do
   headers({
     'Accept' => 'application/json'
   })
-  not_if { ::File.exist?('/tmp/posts_fetched') }  # Only run if the file doesn't already exist
+  not_if { ::File.exist?('/tmp/posts_fetched') }
 end
 
 # Execute a command to create a file after fetching posts
@@ -185,7 +174,7 @@ http_request 'create_post' do
   })
 end
 
-# 22 - Ubuntu 2204 does not have ifconfig anymore
+# 22 - Ubuntu 2204 does not have ifconfig anymore, changed to `ip`
 execute 'configure_network_interface' do
   command <<-CMD
     modprobe dummy
@@ -252,11 +241,11 @@ perl 'hello world' do
   EOH
 end
 
-# 32
-#reboot 'now' do
-#  action :reboot_now
-#  reason 'Cannot continue Chef run without a reboot.'
-#end
+# 32 - skipped for obvious reasons
+# reboot 'now' do
+#   action :reboot_now
+#   reason 'Cannot continue Chef run without a reboot.'
+# end
 
 # 33
 remote_file '/etc/index.html' do
@@ -268,7 +257,7 @@ end
 # 34
 ruby_block 'print_message' do
   block do
-    puts 'This is a Ruby block in Chef!' # Custom Ruby code
+    puts 'This is a Ruby block in Chef!'
   end
   action :run # Default action
 end

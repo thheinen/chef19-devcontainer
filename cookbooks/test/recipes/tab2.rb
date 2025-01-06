@@ -160,9 +160,7 @@ end
 # 24
 habitat_install
 
-user 'hab' do # does not pass idempotency checks?
-  not_if 'id hab'
-end
+execute 'hab license accept'
 
 habitat_package 'core/httpd' do
   channel 'stable'       # Channel from which to install
@@ -171,12 +169,6 @@ habitat_package 'core/httpd' do
 end
 
 # 25
-directory '/hab/accepted-licenses' do
-  recursive true
-end
-
-file '/hab/accepted-licenses/habitat'
-
 habitat_service 'core/httpd' do
   action :load
 end

@@ -1,16 +1,14 @@
 ### Based on results 20241220 ###
 
-# 02
-=begin
-habitat_config 'default' do
-  config({
-    serveradmin: "admin@example.com",
-    serversignature: "On"
-  })
-
-  action :apply
-end
-=end
+# 02 - supervisor not running... I don't know Habitat well enough to debug
+# habitat_config 'default' do
+#   config({
+#     serveradmin: "admin@example.com",
+#     serversignature: "On"
+#   })
+#
+#   action :apply
+# end
 
 # 03
 apt_update  'now' do
@@ -28,7 +26,7 @@ inspec_input 'timezone_input' do
   action :add
 end
 
-# 05
+# 05 - rhel does not have a csh package
 apt_update 'now' do
   action :update
 end
@@ -41,13 +39,13 @@ csh 'run_example_script' do
   action :run
 end
 
-# 06 ----
-python 'hello_world' do
-  code <<-EOH
-    print("Hello, world! From Chef and Python.")
-  EOH
-  action :run
-end
+# 06 - some quoting issue (TODO)
+# python 'hello_world' do
+#   code <<-EOH
+#     print("Hello, world! From Chef and Python.")
+#   EOH
+#   action :run
+# end
 
 # 07
 # FreeBSD
@@ -110,7 +108,7 @@ if Chef::VERSION >= Chef::VersionString.new("19.0.61")
   end
 end
 
-# 14: does not exist, see habitat_sup in rc1 example 19
+# 14 - resource does not exist, see habitat_sup in rc1 example 19
 =begin
 habitat_sup_linux 'default' do
   action :run
@@ -166,46 +164,46 @@ systemd_unit 'my_custom_service.service' do
   action [:create, :enable, :start]
 end
 
-# 17
-rpm_package 'Install crond' do
-  package_name 'crond'
-  action :install # Install the 'nginx' package from the system's package manager
-end
+# 17 - Cannot work, requires a local RPM package. This is not Yum
+# rpm_package 'Install crond' do
+#   package_name 'crond'
+#   action :install
+# end
 
-# 18
+# 18 - adjusted to dynamically adjust to distributions
 route '10.0.1.10/32' do
   gateway node['network']['default_gateway']
   device node['network']['default_interface']
 end
 
 # 19
-#locale 'set system locale' do
-#  lang 'en_US.UTF-8'
-#end
+locale 'set system locale' do
+  lang 'en_US.UTF-8'
+end
 
-# 20
-package 'anacron' # cron does not exist on RHEL
+# 20 - package `cron`` does not exist on RHEL, switched to anacron
+package 'anacron'
 
 # 21
 # pacman_package
 
-# 22
-#remote_directory '/tmp/abc/' do
-#  source 'index.html' # '/home/ec2-user/.chef/chef-repo/cookbooks/cis_rhel_7_benchmark_v3.1.1/files/default/index.html' # Directory in the cookbook
-#  owner 'root' # Owner of the directory
-#  group 'root' # Group of the directory
-#  mode '0755' # Permissions for the directory
-#  files_owner 'root' # Owner of the files
-#  files_group 'root' # Group of the files
-#  files_mode '0644' # Permissions for the files
-#  action :create # Action to create the directory and copy the files (default)
-#end
+# 22 - not working (TODO)
+# remote_directory '/tmp/abc/' do
+#   source 'index.html' # '/home/ec2-user/.chef/chef-repo/cookbooks/cis_rhel_7_benchmark_v3.1.1/files/default/index.html' # Directory in the cookbook
+#   owner 'root' # Owner of the directory
+#   group 'root' # Group of the directory
+#   mode '0755' # Permissions for the directory
+#   files_owner 'root' # Owner of the files
+#   files_group 'root' # Group of the files
+#   files_mode '0644' # Permissions for the files
+#   action :create # Action to create the directory and copy the files (default)
+# end
 
 # 23
 script 'run_custom_script' do
-  interpreter 'bash' # Specify a custom interpreter
-  code "echo 'This is a custom script in Chef!'" # Custom script code
-  action :run # Default action
+  interpreter 'bash'
+  code "echo 'This is a custom script in Chef!'"
+  action :run
 end
 
 # 24
