@@ -31,9 +31,7 @@ apt_update 'now' do
   action :update
 end
 
-package 'tcsh' if platform_family? 'rhel'
-package 'csh' if platform_family? 'debian'
-
+package 'tcsh'
 csh 'run_example_script' do
   code 'echo "Hello from CSH"'
   action :run
@@ -81,8 +79,8 @@ if Chef::VERSION >= Chef::VersionString.new("19.0.61")
   end
 
   chef_organization 'name' do
-    attribute 'value' # Set properties here
-    action :action   # Define action here
+    attribute 'value'
+    action :action
   end
 
   chef_user 'john_doe' do
@@ -176,10 +174,10 @@ route '10.0.1.10/32' do
   device node['network']['default_interface']
 end
 
-# 19
+# 19 - not available for rhel
 locale 'set system locale' do
   lang 'en_US.UTF-8'
-end
+end if debian?
 
 # 20 - package `cron`` does not exist on RHEL, switched to anacron
 package 'anacron'
@@ -187,17 +185,17 @@ package 'anacron'
 # 21
 # pacman_package
 
-# 22 - not working (TODO)
-# remote_directory '/tmp/abc/' do
-#   source 'index.html' # '/home/ec2-user/.chef/chef-repo/cookbooks/cis_rhel_7_benchmark_v3.1.1/files/default/index.html' # Directory in the cookbook
-#   owner 'root' # Owner of the directory
-#   group 'root' # Group of the directory
-#   mode '0755' # Permissions for the directory
-#   files_owner 'root' # Owner of the files
-#   files_group 'root' # Group of the files
-#   files_mode '0644' # Permissions for the files
-#   action :create # Action to create the directory and copy the files (default)
-# end
+# 22
+remote_directory '/tmp/abc/' do
+  source 'abc'
+  owner 'root'
+  group 'root'
+  mode '0755'
+  files_owner 'root'
+  files_group 'root'
+  files_mode '0644'
+  action :create
+end
 
 # 23
 script 'run_custom_script' do

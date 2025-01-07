@@ -101,6 +101,8 @@ file '/etc/crontab' do
 end
 
 # 16
+package 'git' # missing on RHEL8
+
 git '/tmp/chef-repo' do
   repository 'https://github.com/chef/chef.git'
   revision 'main'
@@ -112,25 +114,21 @@ group 'developers' do
   action :remove
 end
 
-# 18
+# 18 - wonky (TODO)
 #group 'hab'
 #user 'hab' do # does not pass idempotency checks?
 #  gid 'hab'
 #  not_if 'id hab'
 #end
-#
-# directory '/hab/accepted-licenses' do
-#   recursive true
-# end
-# file '/hab/accepted-licenses/habitat'
 
 habitat_install 'install habitat' do
   hab_version '1.5.50'
 end
 
-execute 'hab license accept' # without this, subsequent examples will block on habitat package installation, awaiting license acceptance
+# without this, subsequent examples will block on habitat package installation, awaiting license acceptance
+execute 'hab license accept'
 
-# 19 - old example did not match syntax
+# 19 - old example did not match required syntax
 habitat_sup 'default' do
   listen_ctl '0.0.0.0:9632'
   listen_http '0.0.0.0:9631'
@@ -263,7 +261,8 @@ ruby_block 'print_message' do
 end
 
 # 35
-service 'cron' do
+cron_svc = debian? ? 'cron' : 'crond'
+service cron_svc do
   action %i(enable start)
 end
 
