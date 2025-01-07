@@ -1,5 +1,7 @@
 ### Based on results 20241220 ###
 
+skip_habitat = true
+
 # 02
 user 'cbtest' do
   comment 'system guy'
@@ -158,20 +160,20 @@ cookbook_file '/tmp/chef-repo/config.conf' do
 end
 
 # 24
-habitat_install
+habitat_install unless skip_habitat
 
-execute 'hab license accept'
+execute 'hab license accept' unless skip_habitat
 
 habitat_package 'core/httpd' do
   channel 'stable'       # Channel from which to install
   version '2.4.51'       # Optional: Specify version, or omit to install the latest version
   action  :install       # Action to install the package
-end
+end unless skip_habitat
 
 # 25
 habitat_service 'core/httpd' do
   action :load
-end
+end unless skip_habitat
 
 # 26
 alternatives 'python' do

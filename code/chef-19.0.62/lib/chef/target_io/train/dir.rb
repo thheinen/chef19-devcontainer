@@ -64,7 +64,7 @@ module TargetIO
           path = ::File.join(tmpdir, path)
 
           ::TargetIO::FileUtils.mkdir(path)
-          ::TargetIO::FileUtils.chmod(path, 0700)
+          ::TargetIO::FileUtils.chmod(0700, path)
 
           at_exit do
             ::TargetIO::FileUtils.rm_rf(path)

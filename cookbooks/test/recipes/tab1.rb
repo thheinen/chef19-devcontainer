@@ -1,5 +1,7 @@
 ### Based on results 20241220 ###
 
+skip_habitat = true
+
 # 02
 apt_update do
   action :update
@@ -115,25 +117,24 @@ group 'developers' do
 end
 
 # 18 - wonky (TODO)
-#group 'hab'
 #user 'hab' do # does not pass idempotency checks?
-#  gid 'hab'
 #  not_if 'id hab'
 #end
+#group 'hab'
 
 habitat_install 'install habitat' do
   hab_version '1.5.50'
-end
+end unless skip_habitat
 
 # without this, subsequent examples will block on habitat package installation, awaiting license acceptance
-execute 'hab license accept'
+execute 'hab license accept' unless skip_habitat
 
 # 19 - old example did not match required syntax
 habitat_sup 'default' do
   listen_ctl '0.0.0.0:9632'
   listen_http '0.0.0.0:9631'
   listen_gossip '0.0.0.0:9938'
-end
+end unless skip_habitat
 
 # 20
 hostname 'my-new-hostname' do

@@ -1,5 +1,8 @@
 ### Based on results 20241220 ###
 
+skip_chef = true
+chef_server = "https://chef.example.com"
+
 # 02 - supervisor not running... I don't know Habitat well enough to debug
 # habitat_config 'default' do
 #   config({
@@ -49,13 +52,19 @@ end
 # FreeBSD
 
 # 08-12 (19.0.61+)
-if Chef::VERSION >= Chef::VersionString.new("19.0.61")
+if Chef::VERSION >= Chef::VersionString.new("19.0.61") && !skip_chef
+  # Docs are wrong, see
+  #  https://github.com/chef/cheffish/blob/9152b5ff275461db322ba6fddd2444d0038bdee6/lib/cheffish/base_properties.rb#L16C15-L16C26
+  #  https://github.com/chef/cheffish/blob/9152b5ff275461db322ba6fddd2444d0038bdee6/lib/cheffish.rb#L8
   chef_client 'example-client' do
-    chef_server 'https://chef-server.example.com/organizations/my_org'
-    admin true  # Optional: Make this client an API client
-    complete true # Optional: Define the client completely
-    ignore_failure false # Optional: Do not ignore failure by default
-    action :create # Default action, creates a client
+    chef_server ({
+      chef_server_url: chef_server,
+      options: {
+      }
+    })
+    admin true
+    complete true
+    action :create
   end
 
   # Create a group named 'developers' on the Ubuntu machine
@@ -63,29 +72,31 @@ if Chef::VERSION >= Chef::VersionString.new("19.0.61")
     action :create
   end
 
+  # Docs are wrong, see
+  #  https://github.com/chef/cheffish/blob/9152b5ff275461db322ba6fddd2444d0038bdee6/lib/cheffish/node_properties.rb
   chef_node 'example-node' do
     chef_environment 'production'
-    default_attributes({
-      'mysql' => {
-        'version' => '5.7'
+    attributes ({
+      "httpd" => {
+        "listen" => 80
       }
     })
-    normal_attributes({
-      'app' => {
-        'name' => 'my_app'
-      }
-    })
+    tags "webserver"
+    run_list ["recipe[httpd::configure]"]
     action :create
   end
 
-  chef_organization 'name' do
-    attribute 'value'
-    action :action
+  # Docs wrong, see
+  #  https://github.com/chef/cheffish/blob/9152b5ff275461db322ba6fddd2444d0038bdee6/lib/chef/resource/chef_organization.rb
+  chef_organization 'organization_name' do
+    full_name 'Organization Ltd.'
+    action :create
   end
 
   chef_user 'john_doe' do
-    shell '/bin/bash'
-    comment 'John Doe - System Admin'
+    display_name 'John Doe'
+    admin true
+    email 'john@example.com'
     password 'hashed_password_here'
     action :create
   end
@@ -97,11 +108,17 @@ if Chef::VERSION >= Chef::VersionString.new("19.0.61")
         'port' => 80
       }
     )
-    env_run_lists [
-      'role[base]',
-      'recipe[apache]'
-    ]
-    ignore_failure true
+    env_run_lists ({
+      'production' => [
+        'role[base]',
+        'recipe[apache]'
+      ]
+    })
+    default_attributes ({
+      "httpd" => {
+        "listen" => 80
+      }
+    })
     action :create
   end
 end
@@ -180,7 +197,8 @@ locale 'set system locale' do
 end if debian?
 
 # 20 - package `cron`` does not exist on RHEL, switched to anacron
-package 'anacron'
+package 'anacron' if debian?
+package 'cronie' if rhel?
 
 # 21
 # pacman_package
@@ -250,9 +268,8 @@ end
 # 32-34
 if Chef::VERSION >= Chef::VersionString.new("19.0.61")
   chef_acl '/nodes/*' do
-    rights [:read]
-    users ['user1']
-    action :add
+    rights :all, :users => 'jkeiser' # from examples in cheffish
+    action :create
   end
 
   chef_container 'my_container' do
@@ -260,8 +277,7 @@ if Chef::VERSION >= Chef::VersionString.new("19.0.61")
   end
 
   chef_mirror 'mirror_chef_cookbooks' do
-    source 'https://my-mirror-server.com/cookbooks/my_cookbook-1.0.0.tar.gz'
-    destination '/tmp/'
-    action :sync
+    path 'nodes/*'
+    action :upload
   end
 end

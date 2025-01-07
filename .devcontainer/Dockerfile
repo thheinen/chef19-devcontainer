@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 # See https://bldr.habitat.sh/#/pkgs/chef/chef-infra-client/latest
-ARG CHEFHAB_VERSION=19.0.59/20241203230658
+ARG CHEFHAB_VERSION=19.0.62/20250107162735
 
 ENV USERNAME=vscode
 ENV USER_UID=1000
@@ -24,7 +24,7 @@ RUN apt-get update \
 RUN curl --silent https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash \
     && hab cli completers --shell bash > /etc/bash_completion.d/hab \
     && hab pkg install chef/chef-infra-client/${CHEFHAB_VERSION} \
-    && echo -n "#!/bin/bash\nhab pkg exec chef/chef-infra-client chef-client $@\n" >> /usr/local/bin/chef-client \
+    && echo -n "#!/bin/bash\nhab pkg exec chef/chef-infra-client chef-client \\\$@\n" >> /usr/local/bin/chef-client \
     && chmod +x /usr/local/bin/chef-client \
     && mkdir /home/vscode/.chef \
     && chown vscode:vscode -R /home/vscode/.chef/
