@@ -40,13 +40,16 @@ csh 'run_example_script' do
   action :run
 end
 
-# 06 - some quoting issue (TODO)
-# python 'hello_world' do
-#   code <<-EOH
-#     print("Hello, world! From Chef and Python.")
-#   EOH
-#   action :run
-# end
+# 06
+package 'python36' if rhel?
+
+python 'hello_world' do
+  code <<-EOH
+    print("Hello, world! From Chef and Python.")
+  EOH
+  interpreter 'python3'
+  action :run
+end
 
 # 07
 # FreeBSD

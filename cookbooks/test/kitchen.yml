@@ -28,3 +28,6 @@ suites:
       - recipe[test::tab1]
       - recipe[test::tab2]
       - recipe[test::tab3]
+  - name: debug
+    run_list:
+      - recipe[test::debug]

@@ -234,6 +234,8 @@ package 'curl' do
 end
 
 # 31
+package 'perl'
+
 perl 'hello world' do
   code <<-EOH
     print "Hello world! From Chef and Perl.";
