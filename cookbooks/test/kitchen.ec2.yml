@@ -34,3 +34,33 @@ platforms:
   # - name: rhel-9
   - name: ubuntu-20.04 # ok
   - name: ubuntu-22.04 # ok
+
+  # You have to manually subscribe to FreeBSD licenses on AWS before using this
+  # Booting FreeBSD13 or 14 does lead to reboot cycle though
+  #- name: freebsd
+  #  driver:
+  #    image_id: ami-098ceadd831946bf8 # FreeBSD 13.4-RELEASE-amd64 UEFI-PREFERRED-ac170f9b-f71a-458c-ac8e-1bf96b74e270
+  #  transport:
+  #    user: root
+
+  - name: suse12
+    driver:
+      image_id: ami-0c406658cf0545c71 # SUSE Linux Enterprise Server 12 SP5 (HVM, 64-bit, SSD-Backed)
+  - name: suse15
+    driver:
+      image_id: ami-052b6d4907729b057 # SUSE Linux Enterprise Server 15 SP6 (HVM), SSD Volume Type
+
+  # http://arch-ami-list.drzee.net/ - no official Arch Linux images
+  - name: arch   # paludis_package, pacman_package; Not in SoW
+    driver:
+      image_id: ami-02a1f4276a425da5e
+    transport:
+      train_user: arch # BUG: This somehow insists to use "root" instead!? I thought that was fixed...
+
+  # No official or even working Gentoo images on AWS
+  # - name: gentoo # paludis_package; Not in SoW
+  #   driver:
+  #     image_id: ami-0d2959eb410c8ea98 # Gentoo Base System 20230319
+
+  # No OmniOS/Tribblix/OpenIndiana images on AWS, despite https://omnios.org/setup/aws
+  # - name: omnios # solaris_package; Not in SoW

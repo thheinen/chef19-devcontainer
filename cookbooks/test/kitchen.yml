@@ -28,6 +28,32 @@ suites:
       - recipe[test::tab1]
       - recipe[test::tab2]
       - recipe[test::tab3]
-  - name: debug
+    includes:
+      - rhel-8
+      - ubuntu-2004
+      - ubuntu-2204
+  - name: freebsd
+    includes: freebsd
     run_list:
-      - recipe[test::debug]
+      - recipe[test::freebsd]
+  - name: suse
+    includes:
+      - suse12
+      - suse15
+    run_list:
+      - recipe[test::suse]
+  - name: arch
+    includes:
+      - arch
+    run_list:
+      - recipe[test::arch]
+  - name: gentoo
+    includes:
+      - gentoo
+    run_list:
+      - recipe[test::gentoo]
+  - name: solaris
+    includes:
+      - omnios
+    run_list:
+      - recipe[test::omnios]
