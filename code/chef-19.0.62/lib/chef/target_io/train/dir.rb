@@ -5,7 +5,7 @@ module TargetIO
   module TrainCompat
     class Dir
       class << self
-        # TODO: chdir, mktmpdir, pwd, home (Used in Resources)
+        # TODO: chdir, pwd, home (Used in Resources)
 
         def [](*patterns, base: ".", sort: true)
           Dir.glob(patterns, 0, base, sort)
@@ -54,17 +54,16 @@ module TargetIO
 
         # Borrowed and adapted from Ruby's Dir::tmpdir and Dir::mktmpdir
         def mktmpdir(prefix_suffix=nil, *rest, **options)
-
           prefix, suffix = ::File.basename(prefix_suffix || "d")
           random = (::Random.urandom(4).unpack1("L")%36**6).to_s(36)
 
-          tmpdir = ::Dir.tmpdir
           t = Time.now.strftime("%Y%m%d%s")
           path = "#{prefix}#{t}-#{$$}-#{random}" "#{suffix||''}"
           path = ::File.join(tmpdir, path)
 
           ::TargetIO::FileUtils.mkdir(path)
           ::TargetIO::FileUtils.chmod(0700, path)
+          ::TargetIO::FileUtils.chown(remote_user, nil, path) if sudo?
 
           at_exit do
             ::TargetIO::FileUtils.rm_rf(path)
@@ -73,12 +72,26 @@ module TargetIO
           path
         end
 
+        def tmpdir
+          ::Dir.tmpdir
+        end
+
         def unlink(dir_name)
           ::TargetIO::FileUtils.rmdir(dir_name)
         end
 
+        private
+
         def __run_command(cmd)
           __transport_connection.run_command(cmd)
+        end
+
+        def sudo?
+          __transport_connection.transport_options[:sudo]
+        end
+
+        def remote_user
+          __transport_connection.transport_options[:user]
         end
 
         def __transport_connection
