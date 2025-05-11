@@ -1,7 +1,11 @@
+require_relative "../support.rb"
+
 module TargetIO
   module TrainCompat
     class File
       class << self
+        include TargetIO::Support
+
         def foreach(name)
           raise "TargetIO does not implement block-less File.foreach yet" unless block_given?
 
@@ -34,7 +38,6 @@ module TargetIO
         end
 
         def open(file_name, mode = "r")
-          # Would need to hook into io.close (Closure?)
           raise "TargetIO does not implement block-less File.open with modes other than read yet" if mode != "r" && !block_given?
 
           content = exist?(file_name) ? read(file_name) : ""
@@ -64,20 +67,18 @@ module TargetIO
           content.split("\n")
         end
 
-        ### START Could be in Train::File::...
-
         def executable?(file_name)
           mode(file_name) & 0111 != 0
         end
 
         def readable?(file_name)
           cmd = format("test -r %s", file_name)
-          __transport_connection.run_command(cmd).exit_status == 0
+          run_command(cmd).exit_status == 0
         end
 
         def writable?(file_name)
           cmd = format("test -w %s", file_name)
-          __transport_connection.run_command(cmd).exit_status == 0
+          run_command(cmd).exit_status == 0
         end
 
         # def ftype(file_name)
@@ -97,7 +98,7 @@ module TargetIO
           cmd = "realpath #{file_name}" # coreutils, not MacOSX
           Chef::Log.debug cmd
 
-          __transport_connection.run_command(cmd).stdout.chop
+          run_command(cmd).stdout.chop
         end
 
         def readlink(file_name)
@@ -106,44 +107,45 @@ module TargetIO
           cmd = "readlink #{file_name}"
           Chef::Log.debug cmd
 
-          __transport_connection.run_command(cmd).stdout.chop
+          run_command(cmd).stdout.chop
         end
 
-        # def setgid?(file_name)
-        #   mode(file_name) & 04000 != 0
-        # end
+        def setgid?(file_name)
+          mode(file_name) & 04000 != 0
+        end
 
-        # def setuid?(file_name)
-        #   mode(file_name) & 02000 != 0
-        # end
+        def setuid?(file_name)
+          mode(file_name) & 02000 != 0
+        end
 
-        # def sticky?(file_name)
-        #   mode(file_name) & 01000 != 0
-        # end
+        def sticky?(file_name)
+          mode(file_name) & 01000 != 0
+        end
 
-        # def size?(file_name)
-        #   exist?(file_name) && size(file_name) > 0
-        # end
+        def size?(file_name)
+          exist?(file_name) && size(file_name) > 0
+        end
 
-        # def world_readable?(file_name)
-        #   mode(file_name) & 0001 != 0
-        # end
+        def world_readable?(file_name)
+          mode(file_name) & 0001 != 0
+        end
 
-        # def world_writable?(file_name)
-        #   mode(file_name) & 0002 != 0
-        # end
+        def world_writable?(file_name)
+          mode(file_name) & 0002 != 0
+        end
 
-        # def zero?(file_name)
-        #   exists?(file_name) && size(file_name) == 0
-        # end
+        def zero?(file_name)
+          exists?(file_name) && size(file_name) == 0
+        end
 
-        ### END: Could be in Train
+        def tempfile(filename)
+          tempdir = ::TargetIO::Dir.mktmpdir(path)
+          ::File.join(tempdir, filename)
+        end
 
         # passthrough or map calls to third parties
         def method_missing(m, *args, **kwargs, &block)
           nonio    = %i{extname join dirname path split}
-
-          # TODO: writable?
           passthru = %i{basename directory? exist? exists? file? path pipe? socket? symlink?}
           redirect_train = {
             blockdev?: :block_device?,
@@ -162,7 +164,7 @@ module TargetIO
             Chef::Log.debug "File::#{m} passed to Train.file.stat"
 
             follow_symlink = m == :stat
-            tfile = __transport_connection.file(args[0], follow_symlink).stat
+            tfile = transport_connection.file(args[0], follow_symlink).stat
 
             require "ostruct" unless defined?(OpenStruct)
             OpenStruct.new(tfile)
@@ -176,18 +178,18 @@ module TargetIO
 
             file_name, other_args = args[0], args[1..]
 
-            file = __transport_connection.file(file_name)
+            file = transport_connection.file(file_name)
             file.send(m, *other_args, **kwargs) # block?
 
           elsif m == :mtime
             # Solve a data type disparity between Train.file and File
-            timestamp = __transport_connection.file(args[0]).mtime
+            timestamp = transport_connection.file(args[0]).mtime
             Time.at(timestamp)
 
           elsif filestat.include? m
             Chef::Log.debug "File::#{m} passed to Train.file.stat.#{m}"
 
-            __transport_connection.file(args[0]).stat[m]
+            transport_connection.file(args[0]).stat[m]
 
           elsif redirect_utils.key?(m)
             new_method = redirect_utils[m]
@@ -201,71 +203,12 @@ module TargetIO
 
             file_name, other_args = args[0], args[1..]
 
-            file = __transport_connection.file(file_name)
+            file = transport_connection.file(file_name)
             file.send(redirect[m], *other_args, **kwargs) # TODO: pass block
 
           else
             raise "Unsupported File method #{m}"
           end
-        end
-
-        def __transport_connection
-          Chef.run_context&.transport_connection
-        end
-
-        # "sudo" based connections need a staging area for file reading/writing
-        def read_file(filename)
-          accessible_file = filename
-
-          if sudo?
-            accessible_file = staging_file(filename)
-            ::TargetIO::FileUtils.cp(filename, accessible_file)
-          end
-
-          content = __transport_connection.file(accessible_file).content
-
-          clean_staging(accessible_file) if sudo?
-
-          content
-        end
-
-        def upload(local_file, remote_file)
-          accessible_file = remote_file
-          accessible_file = staging_file(remote_file) if sudo?
-
-          __transport_connection.upload(local_file, accessible_file)
-
-          if sudo?
-            ::TargetIO::FileUtils.mv(accessible_file, remote_file)
-            clean_staging(accessible_file)
-          end
-        end
-
-        def sudo?
-          __transport_connection.transport_options[:sudo]
-        end
-
-        def staging_file(filename)
-          staging_dir = ::TargetIO::Dir.mktmpdir(filename)
-          ::File.join(staging_dir, ::File.basename(filename))
-        end
-
-        def clean_staging(filename)
-return
-          ::TargetIO::FileUtils.rm(filename)
-
-          staging_dir = ::File.dirname(filename)
-          ::TargetIO::FileUtils.rmdir(staging_dir)
-        rescue Errno::ENOENT
-        end
-
-        def tempfile(filename)
-          tempdir = ::TargetIO::Dir.mktmpdir(path)
-          ::File.join(tempdir, filename)
-        end
-
-        def tempdir
-          "/tmp"
         end
       end
     end

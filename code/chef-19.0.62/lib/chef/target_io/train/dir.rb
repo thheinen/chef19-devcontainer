@@ -1,11 +1,13 @@
 require_relative "file"
 require_relative "fileutils"
 
+require_relative "../support.rb"
+
 module TargetIO
   module TrainCompat
     class Dir
       class << self
-        # TODO: chdir, pwd, home (Used in Resources)
+        include TargetIO::Support
 
         def [](*patterns, base: ".", sort: true)
           Dir.glob(patterns, 0, base, sort)
@@ -21,7 +23,7 @@ module TargetIO
 
         def entries(dirname)
           cmd = "ls -1a #{dirname}"
-          output = __run_command(cmd).stdout
+          output = run_command(cmd).stdout
           output.split("\n")
         end
 
@@ -31,7 +33,6 @@ module TargetIO
           pattern  = Array(pattern)
           matchdot = flags || ::File::FNM_DOTMATCH ? "dotglob" : ""
 
-          # TODO: Check for bash remotely
           cmd += <<-BASH4
             shopt -s globstar #{matchdot}
             cd #{base}
@@ -40,7 +41,7 @@ module TargetIO
             done
           BASH4
 
-          output = __run_command(cmd).stdout
+          output = run_command(cmd).stdout
           files  = output.split("\n")
           files.sort! if sort
 
@@ -78,24 +79,6 @@ module TargetIO
 
         def unlink(dir_name)
           ::TargetIO::FileUtils.rmdir(dir_name)
-        end
-
-        private
-
-        def __run_command(cmd)
-          __transport_connection.run_command(cmd)
-        end
-
-        def sudo?
-          __transport_connection.transport_options[:sudo]
-        end
-
-        def remote_user
-          __transport_connection.transport_options[:user]
-        end
-
-        def __transport_connection
-          Chef.run_context&.transport_connection
         end
       end
     end

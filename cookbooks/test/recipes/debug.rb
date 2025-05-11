@@ -1,5 +1,4 @@
 ### Based on results 20241220 ###
-=begin
 skip_habitat = true
 
 # 02
@@ -10,13 +9,13 @@ end if debian?
 apt_package 'tree' do
   action :install
 end if debian?
-=end
+
 # 03
 apt_preference 'curl' do
   pin 'version 7.68*'
   pin_priority 1001
 end if debian?
-=begin
+
 # 04 - Habitat repository does not work anymore
 apt_repository 'corretto' do
   uri          'https://apt.corretto.aws'
@@ -57,7 +56,7 @@ chef_sleep 'pause_for_30_seconds' do
   seconds 30
   action :sleep
 end
-
+=begin
 # 10
 cron 'daily_script' do
   minute '0'
@@ -66,7 +65,7 @@ cron 'daily_script' do
   user 'root'
   action :create
 end
-
+=end
 # 11
 cron_access 'allow_user' do
   user 'username'
@@ -449,7 +448,7 @@ habitat_sup_linux 'default' do
     }
   end
 end
-= end
+=end
 
 # 15
 apt_update  'now' do
@@ -590,4 +589,3 @@ if Chef::VERSION >= Chef::VersionString.new("19.0.61")
     action :upload
   end
 end
-=end
