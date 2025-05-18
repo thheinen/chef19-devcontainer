@@ -56,7 +56,7 @@ chef_sleep 'pause_for_30_seconds' do
   seconds 30
   action :sleep
 end
-=begin
+
 # 10
 cron 'daily_script' do
   minute '0'
@@ -65,7 +65,7 @@ cron 'daily_script' do
   user 'root'
   action :create
 end
-=end
+
 # 11
 cron_access 'allow_user' do
   user 'username'

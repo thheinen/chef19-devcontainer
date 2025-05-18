@@ -23,8 +23,10 @@ module TargetIO
       tempfile.write(tempfile, content)
       tempfile.close
 
-      upload(tempfile, remote_file)
+      upload(tempfile.path, remote_file)
       tempfile.unlink
+
+      remote_file
     end
 
     def upload(local_file, remote_file)

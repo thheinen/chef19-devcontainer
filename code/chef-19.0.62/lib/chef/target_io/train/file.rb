@@ -54,7 +54,13 @@ module TargetIO
           if block_given?
             yield(io)
 
-            write_file(file_name, new_content) if (content != new_content) && !mode.start_with?("r")
+            # Return name of new remote file to be used in later operations
+            file_name = write_file(file_name, new_content) if (content != new_content) && !mode.start_with?("r")
+            io.instance_eval <<~INJECT
+              def path
+                "#{file_name}"
+              end
+            INJECT
           end
 
           io
