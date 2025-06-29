@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 # See https://bldr.habitat.sh/#/pkgs/chef/chef-infra-client/latest
-ARG CHEFHAB_VERSION=19.0.62/20250107162735
+ARG CHEFHAB_VERSION=19.1.39/20250618191857
 
 ENV USERNAME=vscode
 ENV USER_UID=1000
@@ -31,4 +31,4 @@ RUN curl --silent https://raw.githubusercontent.com/habitat-sh/habitat/main/comp
 
 # Make this usable as dev environment
 RUN /hab/pkgs/core/ruby3_1/3.1.6/*/bin/gem install test-kitchen kitchen-transport-train kitchen-ec2 toml-rb \
-    && echo 'export PATH="$PATH:$(find /hab/pkgs/core/ruby3_1/3.1.6/*/bin/ -type d)"' >> /etc/bash.bashrc
+    && echo 'export PATH="$PATH:$(find /hab/pkgs/core/ruby3_1/3.1.6/2025*/bin/ -type d)"' >> /etc/bash.bashrc

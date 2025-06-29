@@ -55,7 +55,7 @@ platforms:
     driver:
       image_id: ami-02a1f4276a425da5e
     transport:
-      train_user: arch # BUG: This somehow insists to use "root" instead!? I thought that was fixed...
+      # train_user: arch # BUG: This somehow insists to use "root" instead!? I thought that was fixed...
 
   # No official or even working Gentoo images on AWS
   # - name: gentoo # paludis_package; Not in SoW

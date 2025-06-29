@@ -128,6 +128,9 @@ module ChefConfig
       # @param profile [String] Profile to resolve secrets in.
       # @return [Hash]
       def resolve_secrets(profile)
+        return unless credentials_config
+        raise NoCredentialsFound.new("No credentials found for profile '#{profile}'") unless credentials_config[profile]
+
         secrets = credentials_config[profile].filter { |k,v| v.is_a?(Hash) && v.keys.include?("secret") }
         return if secrets.empty?
 
@@ -137,9 +140,13 @@ module ChefConfig
           end
 
           secrets_config.merge!(default_secrets_provider)
-
-          resolved_value = resolve_secret(secrets_config)
-          raise UnresolvedSecret.new("Could not resolve secret '#{option}' for profile '#{profile}'") if resolved_value.nil?
+          
+          logger.debug("Resolving credentials secret '#{option}' for profile '#{profile}'")
+          begin
+            resolved_value = resolve_secret(secrets_config)
+          ensure
+            raise UnresolvedSecret.new("Could not resolve secret '#{option}' for profile '#{profile}'") if resolved_value.nil?
+          end
 
           credentials_config[profile][option] = resolved_value
         end
@@ -187,6 +194,7 @@ module ChefConfig
 
         # Lazy require due to Gem being part of Chef and rarely used functionality
         require 'vault' unless defined? Vault
+        logger.debug("Connecting to HashiCorp Vault at #{vault_config[:address]}...")
         @vault ||= Vault::Client.new(vault_config)
 
         secret = secrets_config["secret"]

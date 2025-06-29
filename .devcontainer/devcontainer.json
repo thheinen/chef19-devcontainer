@@ -52,16 +52,16 @@
       "KITCHEN_LOCAL_YAML": {
         "description": "Set this to address a specific cloud config in the repo. Recommended: kitchen.ec2.yml"
       },
-      "CHEF_LICENSEKEY": {
+      "CHEF_LICENSE_KEY": {
         "description": "License key for Chef Infra"
       }
     },
 
+    "containerUser": "vscode",
     "remoteUser": "vscode",
     "remoteEnv": {
       "PATH": "/home/vscode/bin:/home/vscode/.local/bin:${containerEnv:PATH}:/hab/pkgs/core/ruby3_1/3.1.6/*/bin/",
       "CHEF_LICENSE": "accept-silent",
-      "CHEF_LICENSE_KEY": "not-included",
       "KITCHEN_LOCAL_YAML": "kitchen.ec2.yml"
     },
     "postCreateCommand": "bash patch.sh",
